@@ -7,7 +7,7 @@
       :rules="[
       () => !!email || 'This field is required',
       (email) => !!email.includes('@') || 'This e-mail is invalid : there is no @',
-      (email) => (email.match(/@/g)||[].length)  > 2 || 'invalid e-mail : multiple (@) symbols found' 
+      () => (this.email.match(/@/g)||[].length)  === 3 || 'invalid e-mail : multiple (@) symbols found' 
       ]"
       :error-messages="errorMessages"
       label="E-mail"
