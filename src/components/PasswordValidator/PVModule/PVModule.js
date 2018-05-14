@@ -1,68 +1,72 @@
+/* eslint no-extra-boolean-cast: 0 */
+
 const state = {
   mainPass: '',
-  e1: false,
   reTyped: '',
-  e2: false,
-  password: 'Password'
+  progress: 0
 }
 const getters = {
-  isInitial (state) {
-    return state.currentStatus === STATUS_INITIAL
+  progress (state) {
+    return state.progress
+  },
+  color (state) {
+    return ['error', 'warning', 'success', 'info'][Math.floor(state.progress / 33)]
+  },
+  PassStrength (state) {
+    return ['very weak', 'weak', 'normal', 'strong'][Math.floor(state.progress / 33)]
+  },
+  mainPass (state) {
+    return state.mainPass
+  },
+  reTyped (state) {
+    return state.reTyped
+  },
+  mainPassLength (state) {
+    return state.mainPass.length > 7
+  },
+  mainPassExist (state) {
+    return !!state.mainPass
+  },
+  reTypeExist (state) {
+    return !!state.reTyped
+  },
+  passMatch (state) {
+    return state.reTyped === state.mainPass
   }
+}
+
+const mutations = {
+  mainPass (state, payload) {
+    state.mainPass = payload
+  },
+  reTyped (state, payload) {
+    state.reTyped = payload
+  },
+  progress (state, payload) {
+    state.progress = payload
+  }
+
 }
 const actions = {
-  reset({
-    commit
-  }) {
-    commit('setCurrentStatus', STATUS_INITIAL)
-    commit('setUploadedFiles', [])
-    commit('setUploadError', null)
-  },
-  save({
-    commit,
-    dispatch
-  }, formData) {
-    commit('setCurrentStatus', STATUS_SAVING)
-
-    upload(formData)
-      .then(wait(1500))
-      .then(data => {
-        commit('setUploadedFiles', [].concat(data))
-        commit('setCurrentStatus', STATUS_SUCCESS)
-      })
-      .catch(err => {
-        commit('setUploadError', err.response)
-        commit('setCurrentStatus', STATUS_FAILED)
-      })
-  },
-  filesChange({
-    commit,
-    dispatch
-  }, dataArray) {
-    let fileList = dataArray[0].fileList
-    let fieldName = dataArray[0].name
-    console.log(fileList, fieldName)
-    const formData = new FormData()
-    if (!fileList.length) {
-      return
+  progressCounter ({commit, getters}) {
+    let password = getters.mainPass
+    let count = 0
+    if (!password) {
+      count = 0
     }
-    Array
-      .from(Array(fileList.length).keys())
-      .map(x => {
-        formData.append(fieldName, fileList[x], fileList[x].name)
-      })
-    dispatch('save', formData)
-  }
-}
-const mutations = {
-  setCurrentStatus(state, payload) {
-    state.currentStatus = payload
-  },
-  setUploadedFiles(state, payload) {
-    state.uploadedFiles = payload
-  },
-  setUploadError(state, payload) {
-    state.uploadError = payload
+    if (!!password.match(/[0-9]/g)) {
+      count += 25
+    }
+    if (!!password.match(/[a-z]/g)) {
+      count += 25
+    }
+    if (!!password.match(/[A-Z]/g)) {
+      count += 25
+    }
+    if (!!password.match(/[\W]/g)) {
+      count += 25
+    }
+    commit('progress', count)
   }
 }
 
@@ -70,8 +74,7 @@ export default {
   namespaced: true,
   state,
   mutations,
-  actions,
-  getters
+  getters,
+  actions
 
 }
-

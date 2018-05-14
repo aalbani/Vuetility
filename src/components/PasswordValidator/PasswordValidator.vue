@@ -6,18 +6,15 @@
           <!-- main Password field and validatiion -->
           <v-text-field
           v-model="mainPass"
+          :rules="[
+          () => mainPassExist || 'This field is required',
+          () =>  mainPassLength || 'Password should be 8 characters long',
+          () => (progress > 50) || 'Password is weak'
+          ]"
           :append-icon="e1 ? 'visibility' : 'visibility_off' "
           :append-icon-cb="() => (e1 = !e1)"
-          required
-          :rules="[
-          () => !!mainPass || 'This field is required',
-          () => mainPass.length > 7 || 'Password should be 8 characters long',
-          () => (progress > 50) || 'Password is too weak'
-          ]"
-          
           :type="e1 ? 'password' : 'text'"
           label="Enter your password"
-          min="8"
         ></v-text-field>
         </v-flex> 
 
@@ -36,8 +33,7 @@
     <v-layout row wrap class="mt-2">
         <v-flex xs4>
         <v-progress-linear 
-        height="20" 
-        slot="progress"
+        height="20"
         :value="progress"
         :color="color">
         </v-progress-linear>
@@ -48,14 +44,14 @@
     <v-layout row class="mt-3">
         <v-flex xs4>
           <v-text-field
-          validate-on-blur
+          
           required
           v-model="reTyped"
           :append-icon="e2 ? 'visibility' : 'visibility_off'"
           :append-icon-cb="() => (e2 = !e2)"
           :rules="[
-          () => !!reTyped || 'This field is required',
-          () => reTyped === mainPass || 'Password doesn\'t match'
+          (v) => reTypeExist || 'This field is required',
+          (v) => passMatch || 'Password doesn\'t match'
           ]"
           :type="e2 ? 'password' : 'text'"
           label="Re-enter your password"
@@ -63,58 +59,60 @@
         ></v-text-field>
         </v-flex>
     </v-layout>
-  
-  
   </v-container>
 </template>
 
 
-
+<script>
+    
+</script>
 
 
 
 
 <script>
+import {mapGetters} from 'vuex'
 export default {
-   data () {
+     data () {
       return {
-        mainPass: '',
         e1: false,
-        reTyped: '',
         e2: false,
-        password: 'Password',
+        password: 'Password'
         
       }
-   },
-   computed: {
-       progress() {
-         let count = 0
-        if (!this.mainPass) {
-            count = 0 
-         }
-         if (!!this.mainPass.match(/[0-9]/g)) {
-            count += 25 
-         }
-         if (!!this.mainPass.match(/[a-z]/g)) {
-            count += 25
-         }
-         if (!!this.mainPass.match(/[A-Z]/g)) {
-            count += 25
-         }
-         if (!!this.mainPass.match(/[\W]/g)) {
-            count += 25
-         }
-
-         return count
-       },
-      color () {
-        return ['error', 'warning', 'success', 'info'][Math.floor(this.progress / 33)]
+     },
+  computed: {
+    
+    mainPass : {
+      get() {
+          this.$store.getters['PVModule/mainPass']
       },
-      PassStrength () {
-        return ['very weak', 'weak', 'normal', 'strong'][Math.floor(this.progress / 33)]
-        
-      } 
-   }
+      set(val) {
+          this.$store.commit('PVModule/mainPass', val)
+          this.$store.dispatch('PVModule/progressCounter')
+      }
+    },
+    reTyped : {
+      get() {
+          this.$store.getters['PVModule/reTyped']
+      },
+      set(val) {
+          this.$store.commit('PVModule/reTyped', val)
+      }
+    },
+    ...mapGetters({
+      color: 'PVModule/color',
+      PassStrength: 'PVModule/PassStrength',
+      mainPassLength: 'PVModule/mainPassLength',
+      mainPassExist: 'PVModule/mainPassExist',
+      progress: 'PVModule/progress',
+      reTypeExist: 'PVModule/reTypeExist',
+      passMatch: 'PVModule/passMatch'
+
+  })
+
+   },
+
 }
 
 </script>
